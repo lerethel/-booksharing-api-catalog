@@ -1,0 +1,37 @@
+services:
+  postgresdb:
+    image: postgres:17.0-alpine
+    restart: unless-stopped
+    env_file: ./.env
+    environment:
+      - POSTGRES_DB=$DATABASE_NAME
+      - POSTGRES_PASSWORD=$DATABASE_PASSWORD
+    expose:
+      - 5432
+    volumes:
+      - db:/var/lib/postgresql/data
+    networks:
+      - booksharing-catalog-db
+  booksharing-catalog:
+    depends_on:
+      - postgresdb
+    image: booksharing-catalog
+    restart: unless-stopped
+    env_file: ./.env
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    ports:
+      - 3001:3001
+    networks:
+      - booksharing-catalog-db
+      - booksharing
+    command: npm run start
+
+volumes:
+  db:
+networks:
+  booksharing-catalog-db:
+    name: booksharing-catalog-db
+  booksharing:
+    external: true
